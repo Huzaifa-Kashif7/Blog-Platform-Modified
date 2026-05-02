@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - AI Blog Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 50px 0;
+        margin-bottom: 40px;
+        border-radius: 0 0 30px 30px;
+    }
+    .notification-item {
+        border-left: 4px solid var(--accent);
+        transition: all 0.3s ease;
+        padding: 1rem;
+    }
+    .notification-item:hover {
+        border-left-width: 6px;
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    [data-theme="dark"] .notification-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-hero text-center">
+    <div class="container">
+        <h1 class="display-5 fw-bold mb-3"><i class="fas fa-bell me-2"></i>Notifications</h1>
+        <p class="lead">Stay updated with your activity feed</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0 fw-bold">Activity Feed</h3>
+                        <a href="{% url 'post_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-home me-1"></i>Back to Home
+                        </a>
+                    </div>
+                    
+                    {% if notifications %}
+                        <div class="list-group">
+                            {% for notification in notifications %}
+                            <div class="list-group-item notification-item mb-2">
+                                <div class="d-flex align-items-start">
+                                    <div class="notification-icon bg-primary text-white me-3 flex-shrink-0">
+                                        {% if 'like' in notification.message|lower %}
+                                            <i class="fas fa-heart"></i>
+                                        {% elif 'comment' in notification.message|lower %}
+                                            <i class="fas fa-comment"></i>
+                                        {% elif 'bookmark' in notification.message|lower %}
+                                            <i class="fas fa-bookmark"></i>
+                                        {% else %}
+                                            <i class="fas fa-bell"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1 fw-semibold">{{ notification.message }}</p>
+                                        {% if notification.post %}
+                                        <a href="{% url 'post_detail' notification.post.slug %}" class="text-decoration-none small">
+                                            <i class="fas fa-arrow-right me-1"></i>View post
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted flex-shrink-0 ms-3">
+                                        <i class="far fa-clock me-1"></i>{{ notification.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-4x text-success mb-4 opacity-50"></i>
+                            <h4 class="mb-3">All Caught Up!</h4>
+                            <p class="text-muted mb-4">You don't have any notifications right now.</p>
+                            <a href="{% url 'post_list' %}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>Explore Posts
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

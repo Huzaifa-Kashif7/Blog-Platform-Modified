@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Semantic Search - AI Blog Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+        border-radius: 0 0 30px 30px;
+    }
+    .search-card {
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+        border-left: 4px solid var(--accent);
+    }
+    .search-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .similarity-badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-hero text-center">
+    <div class="container">
+        <h1 class="display-5 fw-bold mb-3"><i class="fas fa-search me-2"></i>AI Semantic Search</h1>
+        <p class="lead">Search for blog posts by meaning, not just keywords</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Search Form -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-body p-4">
+                    <form method="GET" action="{% url 'semantic_search' %}" class="d-flex gap-2">
+                        <div class="input-group input-group-lg flex-grow-1">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" name="q" class="form-control" 
+                                   placeholder="Enter your search query (e.g., 'learn about machine learning', 'healthy recipes')" 
+                                   value="{{ query }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            {% if query %}
+            <div class="alert alert-info d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <strong><i class="fas fa-info-circle me-2"></i>{{ message }}</strong>
+                    {% if results %}
+                    <span class="badge bg-primary ms-2">{{ results|length }} result(s)</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if results %}
+                {% for result in results %}
+                <div class="card search-card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h4 class="card-title mb-0">
+                                <a href="{% url 'post_detail' result.post.slug %}" class="text-decoration-none fw-bold">
+                                    {{ result.post.title }}
+                                </a>
+                            </h4>
+                            <span class="badge bg-success similarity-badge">
+                                <i class="fas fa-percentage me-1"></i>{{ result.similarity|floatformat:0 }}% match
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>{{ result.post.author.get_full_name|default:result.post.author.username }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="far fa-calendar me-1"></i>{{ result.post.created_at|date:"F d, Y" }}
+                            </small>
+                            {% if result.post.primary_category %}
+                            <span class="badge bg-secondary">{{ result.post.primary_category.name }}</span>
+                            {% elif result.post.category %}
+                            <span class="badge bg-secondary">{{ result.post.category }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if result.post.summary %}
+                        <div class="summary-box mb-3">
+                            <strong><i class="fas fa-file-alt me-2"></i>Summary:</strong> {{ result.post.summary|truncatewords:40 }}
+                        </div>
+                        {% endif %}
+                        
+                        <p class="card-text text-muted mb-3">{{ result.post.content|truncatewords:40|striptags }}</p>
+                        
+                        {% with manual_tags=result.post.manual_tags.all %}
+                        {% if manual_tags %}
+                        <div class="mb-3">
+                            {% for tag in manual_tags|slice:":5" %}
+                            <span class="badge bg-info text-dark me-1">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% elif result.post.tags %}
+                        <div class="mb-3">
+                            {% for tag in result.post.tags|slice:":5" %}
+                            <span class="badge bg-info text-dark me-1">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <a href="{% url 'post_detail' result.post.slug %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-right me-2"></i>Read Full Post
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3 opacity-50"></i>
+                    <h5 class="mb-3">No Results Found</h5>
+                    <p class="mb-2">No results found for "{{ query }}". Try different search terms or make sure posts have embeddings generated.</p>
+                    <small class="text-muted">Tip: Posts need embeddings to be searchable. Create or edit posts with "Generate embedding" enabled.</small>
+                </div>
+            {% endif %}
+            {% endif %}
+
+            <!-- Information Card -->
+            <div class="card shadow-sm mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>How Semantic Search Works</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-brain text-primary me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">AI-Powered</h6>
+                                    <p class="text-muted small mb-0">Uses OpenAI embeddings to convert text into numerical vectors</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-calculator text-primary me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">Similarity Matching</h6>
+                                    <p class="text-muted small mb-0">Calculates similarity between your query and all blog posts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-sort-amount-down text-primary me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">Relevance Sorting</h6>
+                                    <p class="text-muted small mb-0">Returns results sorted by relevance (cosine similarity)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-language text-primary me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">Context Understanding</h6>
+                                    <p class="text-muted small mb-0">Understands context and meaning, not just keyword matching</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

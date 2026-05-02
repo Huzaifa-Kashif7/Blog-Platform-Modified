@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - AI Blog Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        margin-bottom: 60px;
+    }
+    .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .stats-section {
+        background: #f8f9fa;
+        padding: 60px 0;
+        border-radius: 15px;
+    }
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .team-section {
+        padding: 60px 0;
+    }
+    .contact-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 40px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">Welcome to Our AI-Powered Blog Platform</h1>
+        <p class="lead mb-4">Where intelligent content creation meets seamless user experience</p>
+        <p class="fs-5">Empowering writers with cutting-edge AI tools to create, optimize, and share exceptional content</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Mission Section -->
+    <section class="mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="fw-bold mb-4">Our Mission</h2>
+                <p class="lead text-muted">
+                    We believe that great content deserves great tools. Our platform combines the power of artificial intelligence 
+                    with an intuitive, user-friendly interface to help bloggers, writers, and content creators produce their best work.
+                </p>
+                <p>
+                    Whether you're a seasoned writer or just starting your blogging journey, our AI-enhanced features make content 
+                    creation smarter, faster, and more effective. From automatic SEO optimization to semantic search capabilities, 
+                    we provide everything you need to reach and engage your audience.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <h3 class="fw-bold mb-4">Why Choose Us?</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>AI-Powered Content Assistance</strong> - Generate summaries, tags, and SEO metadata automatically
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Semantic Search</strong> - Find content by meaning, not just keywords
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Beautiful Design</strong> - Modern, responsive interface that works on all devices
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Community Features</strong> - Engage with readers through comments, likes, and bookmarks
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Analytics Dashboard</strong> - Track your content performance and audience engagement
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="mb-5">
+        <h2 class="text-center fw-bold mb-5">Platform Features</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">🤖</div>
+                        <h4 class="fw-bold">AI Content Generation</h4>
+                        <p class="text-muted">
+                            Leverage advanced AI to automatically generate summaries, suggest tags, and optimize your content for SEO.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">🔍</div>
+                        <h4 class="fw-bold">Semantic Search</h4>
+                        <p class="text-muted">
+                            Find relevant content using natural language queries. Our AI understands context and meaning, not just keywords.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">📊</div>
+                        <h4 class="fw-bold">Analytics & Insights</h4>
+                        <p class="text-muted">
+                            Track your content performance with detailed analytics, view counts, engagement metrics, and more.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">💬</div>
+                        <h4 class="fw-bold">Community Engagement</h4>
+                        <p class="text-muted">
+                            Build a community around your content with comments, likes, bookmarks, and notifications.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">📝</div>
+                        <h4 class="fw-bold">Markdown Editor</h4>
+                        <p class="text-muted">
+                            Write with ease using our integrated Markdown editor with live preview and syntax highlighting.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon">🎨</div>
+                        <h4 class="fw-bold">Customizable Profiles</h4>
+                        <p class="text-muted">
+                            Create a unique profile with avatars, bios, and showcase your best content to your audience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section mb-5">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-5">Platform Statistics</h2>
+            <div class="row text-center">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-number">{{ total_posts|default:"1000+" }}</div>
+                    <p class="text-muted mb-0">Blog Posts</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-number">{{ total_users|default:"500+" }}</div>
+                    <p class="text-muted mb-0">Active Writers</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-number">{{ total_comments|default:"5000+" }}</div>
+                    <p class="text-muted mb-0">Comments</p>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-number">{{ total_categories|default:"50+" }}</div>
+                    <p class="text-muted mb-0">Categories</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="mb-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="contact-card text-center shadow-lg">
+                    <h2 class="fw-bold mb-4">Get In Touch</h2>
+                    <p class="lead mb-4">
+                        Have questions, suggestions, or need support? We're here to help!
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-envelope fa-2x me-3"></i>
+                                <div>
+                                    <strong>Email Us</strong><br>
+                                    <a href="mailto:support@aiblog.local" class="text-white text-decoration-none">support@aiblog.local</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-comments fa-2x me-3"></i>
+                                <div>
+                                    <strong>Community</strong><br>
+                                    <span>Join our growing community</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="text-center mb-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <h2 class="fw-bold mb-4">Ready to Start Writing?</h2>
+                <p class="lead text-muted mb-4">
+                    Join our community of writers and start creating amazing content today!
+                </p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'post_create' %}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-plus-circle me-2"></i>Create Your First Post
+                    </a>
+                    <a href="{% url 'post_list' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-book me-2"></i>Explore Posts
+                    </a>
+                {% else %}
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up Now
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

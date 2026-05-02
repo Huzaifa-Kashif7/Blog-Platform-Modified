@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form_type == 'create' %}Create Post{% else %}Edit Post{% endif %} - AI Blog Platform{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h1>{% if form_type == 'create' %}Create New Post{% else %}Edit Post{% endif %}</h1>
+
+        <form method="POST" id="postForm" enctype="multipart/form-data" action="{% if form_type == 'create' %}{% url 'post_create' %}{% else %}{% url 'post_update' post.slug %}{% endif %}">
+            {% csrf_token %}
+            
+            <!-- Basic Fields -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{% if form_type == 'update' %}{{ post.title }}{% endif %}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content *</label>
+                        <textarea class="form-control" id="content" name="content" rows="10" required>{% if form_type == 'update' %}{{ post.content }}{% endif %}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="published" {% if form_type == 'update' and post.status == 'published' %}selected{% endif %}>Published</option>
+                            <option value="draft" {% if form_type == 'update' and post.status == 'draft' %}selected{% endif %}>Draft</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Media & Cover</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label" for="cover_image">Cover Image</label>
+                        <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                        <small class="text-muted">Appears on the homepage card and at the top of the post.</small>
+                        {% if form_type == 'update' and post.cover_image %}
+                        <div class="mt-3">
+                            <img src="{{ post.cover_image.url }}" alt="Cover image" class="img-fluid rounded mb-2" style="max-height: 200px; object-fit: cover;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remove_cover" id="remove_cover">
+                                <label class="form-check-label" for="remove_cover">Remove current cover image</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="gallery_images">Gallery Images</label>
+                        <input type="file" class="form-control" id="gallery_images" name="gallery_images" accept="image/*" multiple>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple images.</small>
+                    </div>
+                    {% if form_type == 'update' %}
+                        {% with gallery=post.gallery_images.all %}
+                            {% if gallery %}
+                            <div class="row g-3">
+                                {% for image in gallery %}
+                                <div class="col-md-4 text-center">
+                                    <img src="{{ image.image.url }}" alt="Gallery image" class="img-fluid rounded mb-2" style="max-height: 150px; object-fit: cover;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="delete_gallery" value="{{ image.id }}" id="delete_gallery_{{ image.id }}">
+                                        <label class="form-check-label" for="delete_gallery_{{ image.id }}">Remove</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Manual Categorization -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Manual Categories & Tags</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="primary_category" class="form-label">Select Category</label>
+                            <select class="form-select" id="primary_category" name="primary_category">
+                                <option value="">-- Choose existing --</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if selected_primary_category == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Or add a new one below</small>
+                            <input type="text" class="form-control mt-2" name="new_category" placeholder="New category name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="manual_tags" class="form-label">Tags</label>
+                            <select class="form-select" id="manual_tags" name="manual_tags" multiple size="5">
+                                {% for tag in tag_options %}
+                                <option value="{{ tag.id }}" {% if tag.id in selected_manual_tags %}selected{% endif %}>
+                                    {{ tag.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple tags</small>
+                            <input type="text" class="form-control mt-2" name="new_manual_tags" placeholder="Add new tags (comma separated)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Features Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5>🤖 AI-Powered Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary ai-btn" id="generateTagsBtn">
+                            ✨ Generate Tags & Category
+                        </button>
+                        <button type="button" class="btn btn-outline-success ai-btn" id="generateSeoBtn">
+                            🔍 Generate SEO Metadata
+                        </button>
+                        <small class="d-block text-muted mt-2">
+                            Click buttons above to auto-generate tags, category, and SEO metadata using AI
+                        </small>
+                    </div>
+
+                    <!-- SEO Metadata -->
+                    <div class="mb-3">
+                        <label for="seo_title" class="form-label">SEO Title</label>
+                        <input type="text" class="form-control" id="seo_title" name="seo_title" 
+                               value="{% if form_type == 'update' %}{{ post.seo_title }}{% endif %}" 
+                               placeholder="Auto-generated SEO-optimized title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="slug" class="form-label">URL Slug</label>
+                        <input type="text" class="form-control" id="slug" name="slug" 
+                               value="{% if form_type == 'update' %}{{ post.slug }}{% endif %}" 
+                               placeholder="Auto-generated URL-friendly slug">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meta_description" class="form-label">Meta Description (max 150 chars)</label>
+                        <textarea class="form-control" id="meta_description" name="meta_description" rows="2" 
+                                  maxlength="150" placeholder="Auto-generated meta description">{% if form_type == 'update' %}{{ post.meta_description }}{% endif %}</textarea>
+                        <small class="text-muted"><span id="meta_desc_count">0</span>/150 characters</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <input type="text" class="form-control" id="category" name="category" 
+                               value="{% if form_type == 'update' %}{{ post.category }}{% endif %}" 
+                               placeholder="Auto-generated category">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" id="tags" name="tags" 
+                               value="{% if form_type == 'update' %}{{ tags_str }}{% endif %}" 
+                               placeholder="Auto-generated tags (comma-separated)">
+                    </div>
+
+                    <!-- SEO Keywords Preview -->
+                    <div class="mb-3" id="seoKeywordsPreview" style="display: none;">
+                        <label class="form-label">SEO Keywords</label>
+                        <div id="seoKeywordsDisplay" class="p-2 border rounded bg-light"></div>
+                        <input type="hidden" id="seo_keywords" name="seo_keywords">
+                    </div>
+
+                    <!-- Auto-generation Options -->
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="auto_summary" name="auto_summary" checked>
+                        <label class="form-check-label" for="auto_summary">
+                            Auto-generate summary on save
+                        </label>
+                    </div>
+
+                    {% if form_type == 'update' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="regenerate_summary" name="regenerate_summary">
+                        <label class="form-check-label" for="regenerate_summary">
+                            Regenerate summary
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="auto_embedding" name="auto_embedding" checked>
+                        <label class="form-check-label" for="auto_embedding">
+                            Generate embedding for semantic search
+                        </label>
+                    </div>
+
+                    {% if form_type == 'update' %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="regenerate_embedding" name="regenerate_embedding">
+                        <label class="form-check-label" for="regenerate_embedding">
+                            Regenerate embedding
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="{% if form_type == 'update' %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_list' %}{% endif %}" 
+                   class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>{% if form_type == 'create' %}Create Post{% else %}Update Post{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+        <div class="text-center text-white">
+            <div class="spinner-border mb-3" role="status"></div>
+            <p>Generating AI content...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% if form_type == 'update' and post.seo_keywords %}
+{{ post.seo_keywords|json_script:"existing-seo-keywords" }}
+{% endif %}
+
+{% block extra_js %}
+<script src="{% static 'blog/js/ai_features.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<script>
+// Character counter for meta description
+document.addEventListener('DOMContentLoaded', function() {
+    const metaDescField = document.getElementById('meta_description');
+    if (metaDescField) {
+        // Set initial count
+        document.getElementById('meta_desc_count').textContent = metaDescField.value.length;
+        
+        metaDescField.addEventListener('input', function() {
+            document.getElementById('meta_desc_count').textContent = this.value.length;
+        });
+    }
+
+    const contentField = document.getElementById('content');
+    if (contentField) {
+        window.simplemde = new SimpleMDE({
+            element: contentField,
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: 'post-content-{{ form_type }}{% if form_type == 'update' %}-{{ post.id }}{% endif %}',
+                delay: 1000,
+            },
+            renderingConfig: {
+                codeSyntaxHighlighting: true,
+            },
+            promptURLs: true,
+        });
+    }
+
+    {% if form_type == 'update' and post.seo_keywords %}
+    const existingSeoNode = document.getElementById('existing-seo-keywords');
+    const keywordsHidden = document.getElementById('seo_keywords');
+    const keywordsDisplay = document.getElementById('seoKeywordsDisplay');
+    const keywordsPreview = document.getElementById('seoKeywordsPreview');
+    if (existingSeoNode && keywordsHidden && keywordsDisplay && keywordsPreview) {
+        const existingKeywords = JSON.parse(existingSeoNode.textContent || '[]');
+        if (existingKeywords.length) {
+            keywordsHidden.value = JSON.stringify(existingKeywords);
+            keywordsDisplay.innerHTML = '';
+            existingKeywords.forEach(keyword => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-secondary me-1 mb-1';
+                badge.textContent = keyword;
+                keywordsDisplay.appendChild(badge);
+            });
+            keywordsPreview.style.display = 'block';
+        }
+    }
+    {% endif %}
+
+    // Sync SimpleMDE content to textarea before form submission
+    const postForm = document.getElementById('postForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (postForm) {
+        // Handle form submission
+        postForm.addEventListener('submit', function(e) {
+            // Sync SimpleMDE content to the original textarea if it exists
+            if (window.simplemde) {
+                try {
+                    // Get content from SimpleMDE
+                    const content = window.simplemde.value();
+                    const contentField = document.getElementById('content');
+                    if (contentField) {
+                        contentField.value = content;
+                    }
+                    // Also try codemirror save method
+                    if (window.simplemde.codemirror) {
+                        window.simplemde.codemirror.save();
+                    }
+                } catch(err) {
+                    console.error('Error syncing SimpleMDE:', err);
+                }
+            }
+            // Disable submit button to prevent double submission
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            }
+            // Form will submit normally after this
+        });
+        
+        // Also handle button click as fallback
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                // Sync SimpleMDE before submit
+                if (window.simplemde) {
+                    try {
+                        const content = window.simplemde.value();
+                        const contentField = document.getElementById('content');
+                        if (contentField) {
+                            contentField.value = content;
+                        }
+                    } catch(err) {
+                        console.error('Error syncing SimpleMDE on click:', err);
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}
+

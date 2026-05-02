@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Post - AI Blog Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5>Confirm Delete</h5>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the post <strong>"{{ post.title }}"</strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'post_detail' post.slug %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Yes, Delete Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

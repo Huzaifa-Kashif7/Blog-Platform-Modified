@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.seo_title|default:post.title }} - AI Blog Platform{% endblock %}
+
+{% block extra_head %}
+    {% if post.meta_description %}
+    <meta name="description" content="{{ post.meta_description }}">
+    {% elif post.summary %}
+    <meta name="description" content="{{ post.summary|truncatechars:150 }}">
+    {% endif %}
+    {% if post.seo_keywords %}
+    <meta name="keywords" content="{{ post.seo_keywords|join:', ' }}">
+    {% endif %}
+    <meta property="og:title" content="{{ post.seo_title|default:post.title }}">
+    <meta property="og:description" content="{{ post.meta_description|default:post.summary|truncatechars:150 }}">
+    <meta property="og:url" content="{{ share_url }}">
+    {% if og_image_url %}
+    <meta property="og:image" content="{{ og_image_url }}">
+    {% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <article>
+            <!-- Post Header -->
+            <h1 class="mb-3">{{ post.title }}</h1>
+            
+            <div class="text-muted mb-4">
+                <small>
+                    By <strong>{{ post.author.get_full_name|default:post.author.username }}</strong> •
+                    Published {{ post.created_at|timesince }} ago ({{ post.created_at|date:"F d, Y" }})
+                    {% if post.updated_at != post.created_at %}
+                    • Updated {{ post.updated_at|timesince }} ago
+                    {% endif %}
+                </small>
+            </div>
+
+            <!-- Category and Tags -->
+            {% if post.primary_category %}
+            <div class="mb-3">
+                <span class="badge bg-primary">Category: {{ post.primary_category.name }}</span>
+            </div>
+            {% elif post.category %}
+            <div class="mb-3">
+                <span class="badge bg-primary">Category: {{ post.category }}</span>
+            </div>
+            {% endif %}
+
+            {% with manual_tags=post.manual_tags.all %}
+            {% if manual_tags %}
+            <div class="mb-4">
+                <strong>Tags:</strong>
+                {% for tag in manual_tags %}
+                <span class="badge bg-info text-dark me-1">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            {% elif post.tags %}
+            <div class="mb-4">
+                <strong>Tags:</strong>
+                {% for tag in post.tags %}
+                <span class="badge bg-info text-dark me-1">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% if post.cover_image %}
+            <div class="mb-4">
+                <img src="{{ post.cover_image.url }}" alt="{{ post.title }} cover" class="img-fluid rounded shadow-sm">
+            </div>
+            {% endif %}
+
+            <!-- AI-Generated Summary -->
+            {% if post.summary %}
+            <div class="summary-box">
+                <h5>📝 Summary</h5>
+                <p class="mb-0">{{ post.summary }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Gallery Images -->
+            {% with gallery=post.gallery_images.all %}
+            {% if gallery %}
+            <div class="mt-4 mb-4">
+                <h5 class="mb-3"><i class="fas fa-images me-2"></i>Gallery</h5>
+                <div class="row g-3">
+                    {% for image in gallery %}
+                    <div class="col-md-4 col-sm-6">
+                        <div class="gallery-item">
+                            <img src="{{ image.image.url }}" alt="{{ image.caption|default:post.title }}" class="img-fluid rounded shadow-sm" style="width: 100%; height: 250px; object-fit: cover; cursor: pointer;" onclick="openImageModal('{{ image.image.url }}', '{{ image.caption|default:post.title }}')">
+                            {% if image.caption %}
+                            <small class="text-muted d-block mt-2">{{ image.caption }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- SEO Preview -->
+            {% if post.seo_title or post.meta_description or post.seo_keywords %}
+            <div class="seo-preview">
+                <h5>🔍 SEO Preview</h5>
+                {% if post.seo_title %}
+                <p><strong>SEO Title:</strong> {{ post.seo_title }}</p>
+                {% endif %}
+                {% if post.meta_description %}
+                <p><strong>Meta Description:</strong> {{ post.meta_description }}</p>
+                {% endif %}
+                {% if post.seo_keywords %}
+                <p><strong>Keywords:</strong>
+                    {% for keyword in post.seo_keywords %}
+                    <span class="badge bg-secondary me-1">{{ keyword }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Post Content -->
+            <div class="post-content markdown-body">
+                {{ rendered_body|safe }}
+            </div>
+
+            <!-- Edit/Delete Buttons (for post owner) -->
+            {% if user == post.author or user.is_superuser %}
+            <div class="mt-4 pt-4 border-top">
+                <a href="{% url 'post_update' post.slug %}" class="btn btn-primary">Edit Post</a>
+                <a href="{% url 'post_delete' post.slug %}" class="btn btn-danger">Delete Post</a>
+            </div>
+            {% endif %}
+
+            <div class="mt-4 d-flex flex-wrap gap-2">
+                {% if user.is_authenticated %}
+                    <button class="btn {% if is_liked %}btn-primary{% else %}btn-outline-primary{% endif %} js-like-btn" data-url="{% url 'toggle_like' post.slug %}">
+                        ❤️ Like (<span class="like-count">{{ post.like_count }}</span>)
+                    </button>
+                    <button class="btn {% if is_bookmarked %}btn-warning{% else %}btn-outline-warning{% endif %} js-bookmark-btn" data-url="{% url 'toggle_bookmark' post.slug %}">
+                        ⭐ Bookmark (<span class="bookmark-count">{{ post.bookmark_count }}</span>)
+                    </button>
+                {% else %}
+                    <a class="btn btn-outline-primary" href="{% url 'login' %}?next={{ request.path }}">❤️ Like</a>
+                    <a class="btn btn-outline-warning" href="{% url 'login' %}?next={{ request.path }}">⭐ Bookmark</a>
+                {% endif %}
+                <button class="btn btn-outline-secondary js-share-btn" data-url="{{ share_url }}">Copy Link</button>
+                <a class="btn btn-outline-info" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}&text={{ post.title|urlencode }}">Share on X</a>
+            </div>
+
+            <section class="mt-5">
+                <h4>Comments (<span id="commentCount">{{ post.comment_count }}</span>)</h4>
+                <ul class="list-group mb-3" id="commentList">
+                    {% for comment in comments %}
+                        {% include 'blog/partials/comment.html' %}
+                    {% empty %}
+                        <li class="list-group-item">No comments yet.</li>
+                    {% endfor %}
+                </ul>
+                {% if user.is_authenticated %}
+                    <form id="commentForm" method="post" action="{% url 'add_comment' post.slug %}">
+                        {% csrf_token %}
+                        {{ comment_form.content }}
+                        <button class="btn btn-primary mt-2" type="submit">Post Comment</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted">Please <a href="{% url 'login' %}?next={{ request.path }}">login</a> to comment.</p>
+                {% endif %}
+            </section>
+        </article>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'post_list' %}" class="text-decoration-none">← Back to Posts</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'semantic_search' %}" class="text-decoration-none">🔍 Semantic Search</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="mb-2">
+                        <a href="{% url 'post_create' %}" class="text-decoration-none">✍️ Create New Post</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imageModalImg" src="" alt="" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(imageUrl, caption) {
+    document.getElementById('imageModalImg').src = imageUrl;
+    document.getElementById('imageModalTitle').textContent = caption || 'Gallery Image';
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
+

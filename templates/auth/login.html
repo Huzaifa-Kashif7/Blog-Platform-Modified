@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - AI Blog Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+        border-radius: 0 0 30px 30px;
+    }
+    .auth-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .auth-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-hero text-center">
+    <div class="container">
+        <div class="auth-icon">🔐</div>
+        <h1 class="display-5 fw-bold mb-3">Welcome Back</h1>
+        <p class="lead">Log in to continue sharing your ideas</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card auth-card shadow-lg">
+                <div class="card-body p-5">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    {% if field.name == 'username' %}
+                                        <i class="fas fa-user me-2"></i>
+                                    {% elif field.name == 'password' %}
+                                        <i class="fas fa-lock me-2"></i>
+                                    {% endif %}
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-2">
+                            <a href="{% url 'password_reset' %}" class="text-decoration-none">
+                                <i class="fas fa-key me-1"></i>Forgot your password?
+                            </a>
+                        </p>
+                        <p class="mb-0">
+                            Need an account? <a href="{% url 'signup' %}" class="fw-bold text-decoration-none">Sign up</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
