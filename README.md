@@ -1,4 +1,4 @@
-# **Blog Platform with AI-Ready Features**
+# **Blog Platform with AI-Ready Features And Modifications As Part Of Our SRE Course (Modifications Are Also Demonstrated Via Screenshots In The Report That I Have Provided In Google Drive)**
 
 An intuitive and modern blog publishing platform built using **Django**, featuring user authentication, post creation, comments, likes, bookmarks, notifications, analytics dashboard, user profiles, and a polished UI.  
 The system includes **AI-ready modules** for semantic search and SEO generation, which can be activated using an OpenAI API key.
@@ -172,7 +172,6 @@ python manage.py runserver
 
 
 ---
-
 
 ## 🚀 **Future Improvements**
 
