@@ -210,10 +210,9 @@ This project is licensed under the MIT License.
 ---
 
 
-## 👩‍💻 **Author**
+## 👩‍💻 **Original Author**
 
 Anshita Gautam
 Aspiring Web Developer | Python & Django | Frontend Enthusiast
 
 GitHub: https://github.com/Anshi1310
-
